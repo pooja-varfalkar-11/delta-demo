@@ -22,6 +22,10 @@ const userRouter = require("./routes/user.js");
 
 const dbUrl = process.env.ATLASDB_URL;
 
+if (!dbUrl) {
+  throw new Error("ATLASDB_URL is missing");
+}
+
 main()
   .then(() => {
     console.log("connected to DB");
@@ -43,9 +47,9 @@ app.use(express.static(path.join(__dirname, "public")));
 
 const store = MongoStore.create({
   mongoUrl: dbUrl,
-  crypto: {
-    secret: process.env.SECRET,
-  },
+  // crypto: { 
+  //   secret: process.env.SECRET,
+  // },
   touchAfter: 24 * 3600,
 });
 
@@ -55,7 +59,7 @@ store.on("error", (err) => {
 
 const sessionOptions = {
   store,
-  secret: process.env.SECRET,
+  secret: process.env.SECRET || "fallbackSecret", 
   resave: false,
   saveUninitialized: true,
   cookie: {
@@ -64,6 +68,14 @@ const sessionOptions = {
     httpOnly: true,
   },
 };
+
+
+// if (process.env.NODE_ENV !== "production") {
+//   require('dotenv').config();
+// }
+
+// console.log("ATLASDB_URL:", process.env.ATLASDB_URL);
+// console.log("SECRET:", process.env.SECRET);
 
 // app.get("/", (req, res) => {
 //   res.send("Hi, I am root");
